@@ -148,5 +148,6 @@ find ./  -mtime -1 -name "*.log" -exec zip log.zip -u {} \;
 
 rsync -e 'ssh -o StrictHostKeyChecking=no -q' -avc  localFile  targetIp:targetFile
 
+##### 16.df与du统计结果出现差异
 
-
+出现了文件占用  lsof |grep deleted
