@@ -128,7 +128,10 @@ public Enumeration<E> elements() {        return new Enumeration<E>() {         
 
 ```java
         public boolean hasNext() {            // Racy but within spec, since modifications are checked            // within or after synchronization in next/previous            return cursor != elementCount;        }
-        public E next() {            synchronized (Vector.this) {                checkForComodification();//这？好吧找到了在下面，补贴上来，是一个验证                int i = cursor;                if (i >= elementCount)                    throw new NoSuchElementException();                cursor = i + 1;                return elementData(lastRet = i);            }        }
+            
+        public E next() {            synchronized (Vector.this) {                checkForComodification();//这？好吧找到了在下面，补贴上来，是一个验证     
+                                                                 int i = cursor;                if (i >= elementCount)                    throw new NoSuchElementException();                cursor = i + 1;                return elementData(lastRet = i);            }        }
+                                                                 
         public void remove() {            if (lastRet == -1)                throw new IllegalStateException();            synchronized (Vector.this) {                checkForComodification();                Vector.this.remove(lastRet);                expectedModCount = modCount;            }            cursor = lastRet;            lastRet = -1;        }
         final void checkForComodification() {            if (modCount != expectedModCount)                throw new ConcurrentModificationException();        }    }
  final void checkForComodification() {            if (modCount != expectedModCount)                throw new ConcurrentModificationException();        }    }
