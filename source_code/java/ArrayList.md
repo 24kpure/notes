@@ -128,6 +128,7 @@ public void trimToSize() {
           : Arrays.copyOf(elementData, size);
     }
 }
+//size为数组大小，一般情况大于实际大小，用于空间敏感场景
 ```
 
 **2设置容量数**
@@ -161,6 +162,7 @@ private void grow(int minCapacity) {
     // minCapacity is usually close to size, so this is a win:
     elementData = Arrays.copyOf(elementData, newCapacity);
 }
+//扩容变为1.5倍 原大小+原大小左移一位（一半）
 ```
 
 **4.在调用contain方法时，是调用indexof，而indexof是遍历的，所以说contain方法是o(n)**
@@ -220,6 +222,7 @@ private void fastRemove(int index) {
                          numMoved);
     elementData[--size] = null; // clear to let GC do its work
 }
+//不考虑边界检查，且不返回移除值
 public void clear() {
     modCount++;
 
@@ -285,3 +288,121 @@ private boolean batchRemove(Collection<?> c, boolean complement) {
 ### 四.总结
 
 古人云：量力而行，因为无知所以学习，后面一些部分看着难以理解，我打算日后反刍，走好自己的路吧。
+
+
+
+### 五.初次反刍再度源码
+
+1.clone 浅复制，不拷贝所有元素
+
+```
+/**
+ * Returns a shallow copy of this <tt>ArrayList</tt> instance.  (The
+ * elements themselves are not copied.)
+ *
+ * @return a clone of this <tt>ArrayList</tt> instance
+ */
+public Object clone() {
+    try {
+        ArrayList<?> v = (ArrayList<?>) super.clone();
+        v.elementData = Arrays.copyOf(elementData, size);
+        v.modCount = 0;
+        return v;
+    } catch (CloneNotSupportedException e) {
+        // this shouldn't happen, since we are Cloneable
+        throw new InternalError(e);
+    }
+}
+```
+
+2.foreach方法实现也是通过for
+
+```
+@Override
+public void forEach(Consumer<? super E> action) {
+    Objects.requireNonNull(action);
+    final int expectedModCount = modCount;
+    @SuppressWarnings("unchecked")
+    final E[] elementData = (E[]) this.elementData;
+    final int size = this.size;
+    for (int i=0; modCount == expectedModCount && i < size; i++) {
+        action.accept(elementData[i]);
+    }
+    if (modCount != expectedModCount) {
+        throw new ConcurrentModificationException();
+    }
+}
+```
+
+3.迭代器类实现
+
+```
+private class Itr implements Iterator<E> {
+    int cursor;       // index of next element to return
+    int lastRet = -1; // index of last element returned; -1 if no such
+    int expectedModCount = modCount;
+
+    public boolean hasNext() {
+        return cursor != size;
+    }
+
+    @SuppressWarnings("unchecked")
+    public E next() {
+        checkForComodification();
+        int i = cursor;
+        if (i >= size)
+            throw new NoSuchElementException();
+        Object[] elementData = ArrayList.this.elementData;
+        if (i >= elementData.length)
+            throw new ConcurrentModificationException();
+        cursor = i + 1;
+        return (E) elementData[lastRet = i];
+    }
+
+  //这个方法没有用过
+    public void remove() {
+        if (lastRet < 0)
+            throw new IllegalStateException();
+        checkForComodification();
+
+        try {
+            ArrayList.this.remove(lastRet);
+            cursor = lastRet;
+            lastRet = -1;
+            expectedModCount = modCount;
+        } catch (IndexOutOfBoundsException ex) {
+            throw new ConcurrentModificationException();
+        }
+    }
+
+    //迭代器消费剩余的 可以lambada表达式继续消费
+    @Override
+    @SuppressWarnings("unchecked")
+    public void forEachRemaining(Consumer<? super E> consumer) {
+        Objects.requireNonNull(consumer);
+        final int size = ArrayList.this.size;
+        int i = cursor;
+        if (i >= size) {
+            return;
+        }
+        final Object[] elementData = ArrayList.this.elementData;
+        if (i >= elementData.length) {
+            throw new ConcurrentModificationException();
+        }
+        while (i != size && modCount == expectedModCount) {
+            consumer.accept((E) elementData[i++]);
+        }
+        // update once at end of iteration to reduce heap write traffic
+        cursor = i;
+        lastRet = i - 1;
+        checkForComodification();
+    }
+
+    final void checkForComodification() {
+        if (modCount != expectedModCount)
+            throw new ConcurrentModificationException();
+    }
+}
+```
+
+arrayList相对简单
