@@ -93,3 +93,7 @@ http://blog.csdn.net/claram/article/details/54023216
 mysqldump --host=192.168.1.238 -uroot -ppwd4RDS@2 -C  --opt  ssr_prod |mysql --host=192.168.1.34 -uroot -pmysql#JN99@dev  -C  ssr_test 
 
 mysqldump --host=119.3.38.88  -uroot -pmysql#JN99@dev -C  --opt  ssr_test |mysql --host=192.168.51.134  -uroot -prootpwd  -C  ssr_test 
+
+14.根据in中顺序排序
+
+order by field(third_party_case_number,集合）
