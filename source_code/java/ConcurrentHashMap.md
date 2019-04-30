@@ -21,7 +21,7 @@ A hash table supporting full concurrency of retrievals and
 
 ##### specification 说明；
 
-##### entai 需要；
+##### entail 需要；
 
 ##### interoperable 可共同使用；
 
