@@ -79,7 +79,7 @@
  * <i>capacity</i>.
  *
 
-    这个类提供了所有map的操作方法，并且允许空元素。与HashMap一样，对于基本的操作（例如加，包含，移除操作）其提供了常量执行时间的性能，声明了散列方法分散元素到各个元素桶中。其性能可能只是轻度低于HashMap，因为添加的成本用于爆出连接链表，一个情况例外：迭代完成后集合视图取决于map的size而不是他的容量。迭代完一个HashMap可能更加耗时，因为它迭代取决于其容量。
+    这个类提供了所有map的操作方法，并且允许空元素。与HashMap一样，对于基本的操作（例如加，包含，移除操作）其提供了常量执行时间的性能，声明了散列方法分散元素到各个元素桶中。其性能可能只是轻度低于HashMap，因为添加的成本用于保持连接链表，一个情况例外：迭代完成后集合视图取决于map的size而不是他的容量。迭代完一个HashMap可能更加耗时，因为它迭代取决于其容量。
  
  * <p>A linked hash map has two parameters that affect its performance:
  * <i>initial capacity</i> and <i>load factor</i>.  They are defined precisely
@@ -250,7 +250,7 @@ void afterNodeAccess(Node<K,V> e) { // move node to last
         LinkedHashMap.Entry<K,V> p =
             (LinkedHashMap.Entry<K,V>)e, b = p.before, a = p.after;
         p.after = null;
-        //p下一个节点设为空，为当做尾节点做尊卑
+        //p下一个节点设为空，为当做尾节点做准备
         if (b == null)
             //b为空说明p是首节点，首节点设为原首节点的子节点a
             head = a;
